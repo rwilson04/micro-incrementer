@@ -1,6 +1,8 @@
 var express = require('express');
-var app = express();
 var redis = require("redis");
+var request = require("request");
+
+var app = express();
 var client = redis.createClient(6379, 'incrementer-redis');
 var defaultKey = "default-key";
 
@@ -26,11 +28,23 @@ app.get("/", function(req, res, next) {
 	});
 });
 
+function backup() {
+	if (process.env.AUTOBACKUP === "true") {
+		request("http://persistence/data", function(err, res, body) {
+			if (err) {
+				console.log("Error:", err);
+			}
+			console.log("Backed up:" body);
+		});
+	}
+}
+
 app.get("/:namespace", function(req, res, next) {
 	var namespace = req.params.namespace;
 	client.incr(namespace, function(err, reply) {
 		if (err) throw(err);
 		console.log(reply);
+		backup();
 		res.json(reply);
 	});
 });
@@ -45,6 +59,7 @@ app.post("/:number", function(req, res, next) {
 	client.incrby(defaultKey, number, function(err, reply) {
 		if (err) throw(err);
 		console.log(reply);
+		backup();
 		res.json(reply);
 	});
 });
@@ -60,6 +75,7 @@ app.post("/:namespace/:number", function(req, res, next) {
 	client.incrby(namespace, number, function(err, reply) {
 		if (err) throw(err);
 		console.log(reply);
+		backup();
 		res.json(reply);
 	});
 });
@@ -75,6 +91,7 @@ app.put("/:number", function(req, res, next) {
 		if (err) throw(err);
 		console.log(reply);
 		if (reply === "OK") {
+			backup();
 			res.json({success: true});
 		} else {
 			res.status(500);
@@ -95,6 +112,7 @@ app.put("/:namespace/:number", function(req, res, next) {
 		if (err) throw(err);
 		console.log(reply);
 		if (reply === "OK") {
+			backup();
 			res.json({success: true});
 		} else {
 			res.status(500);
