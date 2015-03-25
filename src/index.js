@@ -34,7 +34,7 @@ function backup() {
 			if (err) {
 				console.log("Error:", err);
 			}
-			console.log("Backed up:" body);
+			console.log("Backed up:", body);
 		});
 	}
 }
