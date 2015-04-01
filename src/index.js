@@ -1,6 +1,7 @@
 var express = require('express');
 var redis = require("redis");
 var request = require("request");
+var port = 80;
 
 var app = express();
 var client = redis.createClient(6379, 'incrementer-redis');
@@ -121,6 +122,6 @@ app.put("/:namespace/:number", function(req, res, next) {
 	});
 });
 
-var server = app.listen(80, function() {
-	console.log("Incrementer server started on port 80");
+var server = app.listen(port, function() {
+	console.log("Incrementer server started on port " + port);
 });
